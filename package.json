@@ -1,0 +1,15 @@
+{
+  "name": "AmazonCognitoSampleAppNodejs",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "aws-sdk": "^2.9.0",
+    "body-parser": "^1.15.2",
+    "express": "4.x",
+    "express-session": "^1.14.1",
+    "hjs": "~0.0.6",
+    "passport": "*",
+    "passport-azure-ad": "^3.0.0",
+    "passport-amazon": "^1.0.0"
+  }
+}
