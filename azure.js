@@ -19,7 +19,7 @@ var bodyParser = require('body-parser');
 
 var util = require('util');
 var AWS = require('aws-sdk');
-var config = require('./azureConfig');
+var config = require('./config-azure');
 var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
 
 
@@ -62,19 +62,10 @@ passport.use(new OIDCStrategy({
     nonceLifetime: config.creds.nonceLifetime,
   },
   function(iss, sub, profile, accessToken, refreshToken, params, done) {
-    // if (!profile.oid) {
-    //   return done(new Error("No oid found"), null);
-    // }
-    // // asynchronous verification, for effect...
-    // process.nextTick(function () {
-    //   profile.token = accessToken;
-    //   var user = profile;
-    //   done(null, user);
-    // });
-    // 
-// console.log("profile:");
-// console.log(profile);
-// console.log("profile end");
+
+console.log("profile:");
+console.log(profile);
+console.log("profile end");
 
 // console.log("refreshToken:");
 // console.log(refreshToken);
@@ -124,7 +115,8 @@ app.get('/', function(req, res) {
 //GET Logout Page
 app.get('/logout', function(req, res) {
     req.logout();
-    res.redirect('/');
+    // res.redirect('/');
+    res.redirect(config.destroySessionUrl);
 });
 
 
@@ -145,14 +137,6 @@ app.get('/auth/amazon/callback', passport.authenticate('azuread-openidconnect', 
         failureRedirect: '/null'
     }),
     function(req, res) {
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
-console.log("GET Amazon callback page.!!!!!!");
         res.redirect('/showData');
 });
 
@@ -161,48 +145,23 @@ app.post('/auth/amazon/callback', passport.authenticate('azuread-openidconnect',
         failureRedirect: '/'
     }),
     function(req, res) {
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log(req.body.id_token);
-req.user.token = req.body.id_token;
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
-console.log("POST Amazon callback page.!!!!!!");
+        req.user.token = req.body.id_token;
+
         res.redirect('/showData');
 });
 
 //GET ShowData page
 //This page initialize the CognitoId and the Cognito client, then list the data contained in the Cognito dataset
 app.get('/showData', ensureAuthenticated, function(req, res) {
-
-console.log("showData@!@!@!!@!!!!!!");
-console.log("showData@!@!@!!@!!!!!!");
-console.log("showData@!@!@!!@!!!!!!");
-console.log("showData@!@!@!!@!!!!!!");
-console.log(req.user);
-console.log("showData@!@!@!!@!!!!!!");
-console.log("showData@!@!@!!@!!!!!!");
-console.log("showData@!@!@!!@!!!!!!");
-console.log("showData@!@!@!!@!!!!!!");
-
     var params = {
-        AccountId: AWS_ACCOUNT_ID, 
-        RoleArn: IAM_ROLE_ARN, 
-        IdentityPoolId: COGNITO_IDENTITY_POOL_ID, 
-        Logins: {
-            'login.microsoftonline.com/08e11fc0-5629-40d0-9937-34607c39001c/v2.0': req.user.token
-        }
+      AccountId: AWS_ACCOUNT_ID, 
+      RoleArn: IAM_ROLE_ARN, 
+      IdentityPoolId: COGNITO_IDENTITY_POOL_ID, 
+      Logins: {
+          'login.microsoftonline.com/08e11fc0-5629-40d0-9937-34607c39001c/v2.0': req.user.token
+          // 'login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0': req.user.token
+          // 'login.microsoftonline.com/cloudnativeltd.onmicrosoft.com/v2.0': req.user.token
+      }
     };
     
     // initialize the Credentials object
@@ -212,6 +171,10 @@ console.log("showData@!@!@!!@!!!!!!");
     AWS.config.credentials.get(function(err) {
         if (err) console.log("## credentials.get: ".red + err, err.stack); // an error occurred
         else {
+console.log("req.user:");
+console.log(req.user);
+console.log("req.user end");
+
             req.user.COGNITO_IDENTITY_ID = AWS.config.credentials.identityId;
 
             // Other AWS SDKs will automatically use the Cognito Credentials provider
@@ -240,9 +203,8 @@ console.log("showData@!@!@!!@!!!!!!");
                         title: THE_TITLE,
                         gaugeValue: req.user.CURRENT_LIFE,
                         records: dataRecords,
-                        amazonName: req.user.displayName,
-                        // amazonEmail: req.user.emails[0].value,
-                        amazonEmail: "",
+                        name: req.user.displayName,
+                        email: req.user._json.email,
                         displayButtons: req.user,
                         cognitoId: req.user.COGNITO_IDENTITY_ID
                     });
@@ -303,9 +265,8 @@ app.get('/modifyLife',ensureAuthenticated, function(req, res, next) {
                         title: THE_TITLE,
                         gaugeValue: req.user.CURRENT_LIFE,
                         records: dataRecords,
-                        amazonName: req.user.displayName,
-                        // amazonEmail: req.user.emails[0].value,
-                        amazonEmail: "",
+                        name: req.user.displayName,
+                        email: req.user._json.email,
                         displayButtons: req.user,
                         cognitoId: req.user.COGNITO_IDENTITY_ID
                     });
