@@ -13,7 +13,7 @@ exports.creds = {
 
   // Required, must be 'code', 'code id_token', 'id_token code' or 'id_token' 
   // responseType: 'code', 
-  responseType: 'id_token', 
+  responseType: 'code id_token', 
 
   // Required
   responseMode: 'form_post', 
@@ -27,8 +27,9 @@ exports.creds = {
   
   // Required if `responseType` is 'code', 'id_token code' or 'code id_token'. 
   // If app key contains '\', replace it with '\\'.
-  clientSecret: null, 
-
+  // clientSecret: null, 
+  clientSecret: 'g5qShmbuPYmMxtbuwDC6gDk', 
+  
   // Required to set to false if you don't want to validate issuer
   validateIssuer: false,
 
@@ -41,7 +42,7 @@ exports.creds = {
   passReqToCallback: false,
 
   // Optional. The additional scope you want besides 'openid', for example: ['email', 'profile'].
-  scope: ['email','profile','openid'],
+  scope: ['email','profile','openid','offline_access', 'mail.read', 'User.ReadWrite'],
 
   // Optional, 'error', 'warn' or 'info'
   loggingLevel: 'info',

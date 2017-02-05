@@ -1,13 +1,3 @@
-/*
-Copyright 2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-
-    http://aws.amazon.com/apache2.0/
-
-or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-
-*/
 
 
 //Required modules and libraries
@@ -19,7 +9,7 @@ var bodyParser = require('body-parser');
 
 var util = require('util');
 var AWS = require('aws-sdk');
-var config = require('./config-azure');
+var config = require('./config-outlook');
 var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
 
 
@@ -32,7 +22,7 @@ var COGNITO_KEY_NAME = 'LIFE';
 
 //Declaration of variables for the app
 var cognitosync;
-var THE_TITLE = "Cognito Sample App Node.js - Identity Provider Azure AD";
+var THE_TITLE = "Cognito Sample App Node.js - Identity Provider Outlook";
 
 
 //Passport serialization
@@ -43,7 +33,6 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(obj, done) {
     done(null, obj);
 });
-
 
 //Using the AzureAD strategy to "Login with Amazon"
 passport.use(new OIDCStrategy({
@@ -147,9 +136,11 @@ app.get('/auth/amazon',
 
 /* GET Amazon callback page. */
 app.get('/auth/amazon/callback', passport.authenticate('azuread-openidconnect', {
-        failureRedirect: '/null'
+        failureRedirect: '/'
     }),
     function(req, res) {
+        req.user.authInfo = req.authInfo;
+
         res.redirect('/showData');
 });
 
@@ -171,9 +162,7 @@ app.get('/showData', ensureAuthenticated, function(req, res) {
       RoleArn: IAM_ROLE_ARN, 
       IdentityPoolId: COGNITO_IDENTITY_POOL_ID, 
       Logins: {
-          'login.microsoftonline.com/08e11fc0-5629-40d0-9937-34607c39001c/v2.0': req.user.authInfo.id_token
-          // 'login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0': req.user.token
-          // 'login.microsoftonline.com/cloudnativeltd.onmicrosoft.com/v2.0': req.user.token
+          'login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0': req.user.authInfo.id_token
       }
     };
     
@@ -310,19 +299,9 @@ app.use(function(err, req, res, next) {
 //If the request is authenticated (via a persistent login session),
 //the request will proceed.  Otherwise, the user will be redirected to the home page for login.
 function ensureAuthenticated(req, res, next) {
-// console.log("ensureAuthenticated111111");
-// console.log("req.user");
-// console.log(req.user);
-// console.log("req.user end");
-// console.log("req.authInfo");
-// console.log(req.authInfo);
-// console.log("req.authInfo end");
-
   if (req.isAuthenticated()) { 
-    // console.log("ensureAuthenticated333333");
     return next(); 
   }
-// console.log("ensureAuthenticated222222");
   res.redirect('/')
 }
 
