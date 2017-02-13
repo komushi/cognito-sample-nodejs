@@ -12,6 +12,7 @@ var AWS = require('aws-sdk');
 var config = require('./config-outlook');
 var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
 
+var calendar = require('./calendar');
 
 var AWS_ACCOUNT_ID = '042083552617';
 var AWS_REGION = 'ap-northeast-1';
@@ -157,6 +158,58 @@ app.post('/auth/amazon/callback', passport.authenticate('azuread-openidconnect',
 //GET ShowData page
 //This page initialize the CognitoId and the Cognito client, then list the data contained in the Cognito dataset
 app.get('/showData', ensureAuthenticated, function(req, res) {
+console.log("req.user");
+console.log(req.user);
+console.log("req.user end");
+    calendar.getAllEvents(req.user)
+      .then((events) => {
+        console.log(JSON.stringify(events));
+
+        // var itemParams = {
+        //   RequestItems: {
+        //   "events": []
+        //   }
+        // };
+
+        // events.forEach(function (event) {
+        //   var item = {};
+        //   item.
+
+        //   itemParams.RequestItems.events.push(event);
+        // })
+
+        // var eventsTbl = new AWS.DynamoDB({apiVersion: '2012-08-10', params: {TableName: 'events'}});
+        // var key = 'UNIQUE_KEY_ID';
+
+        // eventsTbl.putItem(itemParams, function() {
+        //     // Read the item from the table
+        //     table.getItem({Key: {id: {S: key}}}, function(err, data) {
+        //     console.log(data.Item); // print the item data
+        //     });
+        // });
+
+        var $db = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+        var DynamoDB = require('aws-dynamodb')($db);
+
+        events.forEach(function (event) {
+          DynamoDB
+              .table('events')
+              .insert_or_update({
+                  id: event.id,
+                  subject: event.subject,
+                  start: event.start,
+                  end: event.end,
+                  attendees: event.attendees
+              }, function(err,data) {
+                  console.log( err, data )
+              });
+        });
+
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+
     var params = {
       AccountId: AWS_ACCOUNT_ID, 
       RoleArn: IAM_ROLE_ARN, 
@@ -209,6 +262,8 @@ app.get('/showData', ensureAuthenticated, function(req, res) {
                     });
                 }
             });
+
+            //
         }
     });
 });
